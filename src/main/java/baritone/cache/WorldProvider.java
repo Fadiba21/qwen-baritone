@@ -31,7 +31,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,6 +44,33 @@ import java.util.Optional;
 public class WorldProvider implements IWorldProvider {
 
     private static final Map<Path, WorldData> worldCache = new HashMap<>();
+
+    /** Save every world ever loaded in this client, not only the currently active one. */
+    public static boolean saveAllWorlds(long deadlineNanos) {
+        List<WorldData> worlds;
+        synchronized (worldCache) {
+            worlds = new ArrayList<>(worldCache.values());
+        }
+        boolean saved = true;
+        for (WorldData world : worlds) {
+            if (System.nanoTime() >= deadlineNanos) {
+                System.err.println("Skipping remaining Baritone world-cache saves after the shutdown deadline.");
+                return false;
+            }
+            try {
+                if (!world.cache.flushPendingAndSave(deadlineNanos)) {
+                    System.err.println("Baritone world-cache flush reached the shutdown deadline: " + world.directory);
+                    saved = false;
+                    break;
+                }
+            } catch (RuntimeException failure) {
+                System.err.println("Failed to save a Baritone world cache during client shutdown: " + world.directory);
+                failure.printStackTrace();
+                saved = false;
+            }
+        }
+        return saved;
+    }
 
     private final Baritone baritone;
     private final IPlayerContext ctx;

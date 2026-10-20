@@ -56,9 +56,23 @@ import java.util.function.Function;
 public class Baritone implements IBaritone {
 
     private static final ThreadPoolExecutor threadPool;
+    private static final Object executorLock = new Object();
+    private static volatile boolean shuttingDown;
+    private static final Executor executor;
 
     static {
-        threadPool = new ThreadPoolExecutor(4, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
+        threadPool = new ThreadPoolExecutor(4, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), task -> {
+            Thread worker = new Thread(task, "Baritone worker");
+            worker.setDaemon(true);
+            return worker;
+        });
+        executor = task -> {
+        synchronized (executorLock) {
+            if (!shuttingDown) {
+                threadPool.execute(task);
+            }
+        }
+    };
     }
 
     private final Minecraft mc;
@@ -259,6 +273,31 @@ public class Baritone implements IBaritone {
     }
 
     public static Executor getExecutor() {
-        return threadPool;
+        return executor;
+    }
+
+    /** Stop background work and persist every cached world before the client exits. */
+    public static void shutdown() {
+        synchronized (executorLock) {
+            if (shuttingDown) {
+                return;
+            }
+            shuttingDown = true;
+            threadPool.shutdownNow();
+        }
+
+        try {
+            // The cache workers are normally interruptible; keep client shutdown bounded if another task is not.
+            threadPool.awaitTermination(2, TimeUnit.SECONDS);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+        }
+
+        boolean cachesSaved = WorldProvider.saveAllWorlds(System.nanoTime() + TimeUnit.SECONDS.toNanos(7));
+        if (cachesSaved) {
+            System.out.println("[Baritone] Client shutdown complete; cached worlds flushed.");
+        } else {
+            System.err.println("[Baritone] Client shutdown complete; cache flush reached its 7-second deadline, some derived cache data may not have been saved.");
+        }
     }
 }

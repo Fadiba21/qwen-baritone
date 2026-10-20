@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout v4.2.2
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      # actions/setup-java v4.7.1
+      - name: Set up Temurin JDK 25
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+
+      - name: Build and test
+        run: ./gradlew clean :fabric:clean :fabric:build test --no-daemon --max-workers=2
+
+      # actions/upload-artifact v4.6.2; only the remapped distribution JAR (no dev/dev-shadow classifiers).
+      - name: Upload distribution JAR
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qwen-baritone-fabric-distribution
+          path: |
+            fabric/build/libs/*.jar
+            !fabric/build/libs/*-dev.jar
+            !fabric/build/libs/*-dev-shadow.jar
+          if-no-files-found: error
+
+      # Always retain test reports, including when build or tests fail.
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: test-reports
+          path: |
+            **/build/test-results/test/**
+            **/build/reports/tests/test/**
+          if-no-files-found: ignore

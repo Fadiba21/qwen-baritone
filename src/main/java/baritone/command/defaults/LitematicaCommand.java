@@ -35,7 +35,8 @@ public class LitematicaCommand extends Command {
     @Override
     public void execute(String label, IArgConsumer args) throws CommandException {
         args.requireMax(1);
-        int schematic = args.hasAny() ? args.getAs(Integer.class) - 1 : 0;
+        // No argument: build the placement selected in Litematica (or the first enabled one).
+        int schematic = args.hasAny() ? args.getAs(Integer.class) - 1 : -1;
         baritone.getBuilderProcess().buildOpenLitematic(schematic);
     }
 
@@ -55,8 +56,8 @@ public class LitematicaCommand extends Command {
                 "Build a schematic currently open in Litematica.",
                 "",
                 "Usage:",
-                "> litematica",
-                "> litematica <#>"
+                "> litematica - builds the placement selected in Litematica",
+                "> litematica <#> - builds placement number # of Litematica's list"
         );
     }
 }

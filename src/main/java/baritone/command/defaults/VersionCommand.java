@@ -23,6 +23,9 @@ import baritone.api.command.argument.IArgConsumer;
 import baritone.api.command.exception.CommandException;
 import baritone.api.command.exception.CommandInvalidStateException;
 
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -37,7 +40,13 @@ public class VersionCommand extends Command {
     public void execute(String label, IArgConsumer args) throws CommandException {
         args.requireMax(0);
         String version = getClass().getPackage().getImplementationVersion();
+        // Fabric's transforming classloader may omit Package manifest attributes.
         if (version == null) {
+            try (InputStream input = VersionCommand.class.getResourceAsStream("/qwenui-build.properties")) {
+                if (input != null) { Properties properties = new Properties(); properties.load(input); version = properties.getProperty("version"); }
+            } catch (IOException ignored) { /* Retain upstream's explicit error when no metadata is available. */ }
+        }
+        if (version == null || version.isBlank()) {
             throw new CommandInvalidStateException("Null version (this is normal in a dev environment)");
         } else {
             logDirect(String.format("You are running Baritone v%s", version));

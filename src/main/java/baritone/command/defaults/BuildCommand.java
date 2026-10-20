@@ -80,7 +80,12 @@ public class BuildCommand extends Command {
         }
         boolean success = baritone.getBuilderProcess().build(file.getName(), file, buildOrigin);
         if (!success) {
-            throw new CommandInvalidStateException("Couldn't load the schematic. Either your schematic is corrupt or this is a bug.");
+            String why = baritone.getBuilderProcess().getLastLoadError();
+            throw new CommandInvalidStateException("Couldn't load " + file.getName() + ": "
+                    + (why == null ? "unknown error (see the game log)" : why));
+        }
+        for (String warning : baritone.getBuilderProcess().getLastLoadWarnings()) {
+            logDirect("Warning: " + warning);
         }
         logDirect(String.format("Successfully loaded schematic for building\nOrigin: %s", buildOrigin));
     }

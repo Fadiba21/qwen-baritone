@@ -77,21 +77,34 @@ public enum DefaultSchematicFormats implements ISchematicFormat {
     LITEMATICA("litematic") {
         @Override
         public IStaticSchematic parse(InputStream input) throws IOException {
-            CompoundTag nbt = NbtIo.readCompressed(input, NbtAccounter.unlimitedHeap());
-            int version = nbt.getInt("Version").orElse(-1);
-            switch (version) {
-                case 4: //1.12
-                case 5: //1.13-1.17
-                    throw new UnsupportedOperationException("This litematic Version is too old.");
-                case 6: //1.18-1.20
-                    throw new UnsupportedOperationException("This litematic Version is too old.");
-                case 7: //1.21+
-                    return new LitematicaSchematic(nbt);
-                default:
-                    throw new UnsupportedOperationException("Unsuported Version of a Litematica Schematic");
+            CompoundTag nbt;
+            try {
+                nbt = NbtIo.readCompressed(input, NbtAccounter.unlimitedHeap());
+            } catch (java.util.zip.ZipException | java.io.EOFException e) {
+                throw new IOException("Not a valid .litematic (it must be a gzip-compressed NBT file; the file is cut off or was renamed from another format): " + e.getMessage(), e);
             }
+            int version = nbt.getInt("Version").orElse(-1);
+            if (version < 0) {
+                throw new IOException("Not a Litematica file: no 'Version' tag found. Re-export it from Litematica.");
+            }
+            if (version < 5) {
+                throw new IOException("This litematic is format version " + version + " (Minecraft 1.12 era). Open it in Litematica and save it again to upgrade.");
+            }
+            LitematicaSchematic schematic;
+            try {
+                schematic = new LitematicaSchematic(nbt);
+            } catch (IllegalArgumentException | ClassCastException | IndexOutOfBoundsException | NegativeArraySizeException | OutOfMemoryError e) {
+                throw new IOException("Litematic (format v" + version + ") could not be read: " + e.getMessage(), e);
+            }
+            if (version < 6) {
+                schematic.addWarning("Format v" + version + " is old (1.13-1.17); blocks that changed since then may become air.");
+            } else if (version > 7) {
+                schematic.addWarning("Format v" + version + " is newer than the tested v7; loaded anyway, check the result.");
+            }
+            return schematic;
         }
     };
+
 
     private final String extension;
 

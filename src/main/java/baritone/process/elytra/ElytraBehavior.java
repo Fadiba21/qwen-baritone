@@ -60,7 +60,6 @@ import net.minecraft.world.phys.Vec3;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.function.UnaryOperator;
 
@@ -117,10 +116,6 @@ public final class ElytraBehavior implements Helper {
     private boolean solveNextTick;
 
     private long timeLastCacheCull = 0L;
-
-    // auto swap
-    private int invTickCountdown = 0;
-    private final Queue<Runnable> invTransactionQueue = new LinkedList<>();
 
     public ElytraBehavior(Baritone baritone, ElytraProcess process, NetherPathfinderContext npf, BlockPos destination, boolean appendDestination) {
         this.baritone = baritone;
@@ -540,8 +535,6 @@ public final class ElytraBehavior implements Helper {
                 this.solver = null;
             }
         }
-
-        tickInventoryTransactions();
 
         // Certified mojang employee incident
         if (this.remainingFireworkTicks > 0) {
@@ -1291,21 +1284,6 @@ public final class ElytraBehavior implements Helper {
         }
     }
 
-    private void tickInventoryTransactions() {
-        if (invTickCountdown <= 0) {
-            Runnable r = invTransactionQueue.poll();
-            if (r != null) {
-                r.run();
-                invTickCountdown = Baritone.settings().ticksBetweenInventoryMoves.value;
-            }
-        }
-        if (invTickCountdown > 0) invTickCountdown--;
-    }
-
-    private void queueWindowClick(int windowId, int slotId, int button, ContainerInput type) {
-        invTransactionQueue.add(() -> ctx.playerController().windowClick(windowId, slotId, button, type, ctx.player()));
-    }
-
     private int findGoodElytra() {
         NonNullList<ItemStack> invy = ctx.player().getInventory().getNonEquipmentItems();
         for (int i = 0; i < invy.size(); i++) {
@@ -1317,8 +1295,14 @@ public final class ElytraBehavior implements Helper {
         return -1;
     }
 
+    private boolean hasSafeInventorySwapContext() {
+        return ctx.minecraft().gui.screen() == null
+                && ctx.player().containerMenu == ctx.player().inventoryMenu
+                && ctx.player().inventoryMenu.getCarried().isEmpty();
+    }
+
     private void trySwapElytra() {
-        if (!Baritone.settings().elytraAutoSwap.value || !invTransactionQueue.isEmpty()) {
+        if (!Baritone.settings().elytraAutoSwap.value || !hasSafeInventorySwapContext()) {
             return;
         }
 
@@ -1329,12 +1313,50 @@ public final class ElytraBehavior implements Helper {
         }
 
         int goodElytraSlot = findGoodElytra();
-        if (goodElytraSlot != -1) {
-            final int CHEST_SLOT = 6;
-            final int slotId = goodElytraSlot < 9 ? goodElytraSlot + 36 : goodElytraSlot;
-            queueWindowClick(ctx.player().inventoryMenu.containerId, slotId, 0, ContainerInput.PICKUP);
-            queueWindowClick(ctx.player().inventoryMenu.containerId, CHEST_SLOT, 0, ContainerInput.PICKUP);
-            queueWindowClick(ctx.player().inventoryMenu.containerId, slotId, 0, ContainerInput.PICKUP);
+        if (goodElytraSlot == -1) {
+            return;
+        }
+
+        final int CHEST_SLOT = 6;
+        final int slotId = goodElytraSlot < 9 ? goodElytraSlot + 36 : goodElytraSlot;
+        final var menu = ctx.player().inventoryMenu;
+        if (!menu.isValidSlotIndex(slotId) || !menu.isValidSlotIndex(CHEST_SLOT)) {
+            return;
+        }
+
+        // Validate the actual menu slots too; do not click if the inventory view is unexpected.
+        ItemStack source = menu.getSlot(slotId).getItem();
+        ItemStack chestSlot = menu.getSlot(CHEST_SLOT).getItem();
+        if (source.getItem() != Items.ELYTRA
+                || source.getMaxDamage() - source.getDamageValue() <= Baritone.settings().elytraMinimumDurability.value
+                || chestSlot.getItem() != Items.ELYTRA
+                || chestSlot.getDamageValue() != chest.getDamageValue()
+                || !menu.getCarried().isEmpty()
+                || ctx.player().containerMenu != menu
+                || ctx.minecraft().gui.screen() != null) {
+            return;
+        }
+        final int sourceDamage = source.getDamageValue();
+        final int oldChestDamage = chest.getDamageValue();
+
+        // Execute the full pickup swap synchronously in this tick. Never retain a click
+        // for a later tick, where a user could have opened a GUI or moved the cursor stack.
+        final int windowId = menu.containerId;
+        ctx.playerController().windowClick(windowId, slotId, 0, ContainerInput.PICKUP, ctx.player());
+        ctx.playerController().windowClick(windowId, CHEST_SLOT, 0, ContainerInput.PICKUP, ctx.player());
+        ctx.playerController().windowClick(windowId, slotId, 0, ContainerInput.PICKUP, ctx.player());
+
+        // A completed swap must leave the cursor empty and equip the validated spare.
+        ItemStack equipped = ctx.player().getItemBySlot(EquipmentSlot.CHEST);
+        ItemStack returnedToSource = menu.getSlot(slotId).getItem();
+        if (!menu.getCarried().isEmpty()
+                || equipped.getItem() != Items.ELYTRA
+                || equipped.getDamageValue() != sourceDamage
+                || equipped.getMaxDamage() - equipped.getDamageValue() <= Baritone.settings().elytraMinimumDurability.value) {
+            logVerbose("Elytra auto-swap did not reach its expected final state");
+        } else if (returnedToSource.getItem() != Items.ELYTRA
+                || returnedToSource.getDamageValue() != oldChestDamage) {
+            logVerbose("Elytra auto-swap did not return the old Elytra to its source slot");
         }
     }
 

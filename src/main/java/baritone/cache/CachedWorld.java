@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Brady
@@ -67,6 +68,8 @@ public final class CachedWorld implements ICachedWorld, Helper {
      * key in that map.
      */
     private final LinkedBlockingQueue<ChunkPos> toPackQueue = new LinkedBlockingQueue<>();
+
+    private final Object packingLock = new Object();
 
     /**
      * All chunk positions pending packing. This map will be updated in-place if a new update to the chunk occurs
@@ -101,7 +104,8 @@ public final class CachedWorld implements ICachedWorld, Helper {
                     Thread.sleep(600000);
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
+                return;
             }
         });
     }
@@ -183,6 +187,46 @@ public final class CachedWorld implements ICachedWorld, Helper {
         long now = System.nanoTime() / 1000000L;
         System.out.println("World save took " + (now - start) + "ms");
         prune();
+    }
+
+    /** Drain pending chunks and save regions until the client-shutdown deadline. */
+    boolean flushPendingAndSave(long deadlineNanos) {
+        synchronized (packingLock) {
+            ChunkPos pos;
+            while (System.nanoTime() < deadlineNanos && (pos = toPackQueue.poll()) != null) {
+                LevelChunk chunk = toPackMap.remove(pos);
+                if (chunk != null) {
+                    updateCachedChunk(ChunkPacker.pack(chunk));
+                }
+            }
+        }
+        if (System.nanoTime() >= deadlineNanos) {
+            return false;
+        }
+        List<CachedRegion> regions = allRegions();
+        if (!Baritone.settings().chunkCaching.value) {
+            for (CachedRegion region : regions) {
+                if (System.nanoTime() >= deadlineNanos) {
+                    return false;
+                }
+                if (region != null) {
+                    region.removeExpired();
+                }
+            }
+            return true;
+        }
+        long start = System.nanoTime() / 1000000L;
+        for (CachedRegion region : regions) {
+            if (System.nanoTime() >= deadlineNanos) {
+                return false;
+            }
+            if (region != null) {
+                region.save(this.directory);
+            }
+        }
+        long now = System.nanoTime() / 1000000L;
+        System.out.println("World save took " + (now - start) + "ms");
+        return System.nanoTime() < deadlineNanos;
     }
 
     /**
@@ -309,16 +353,21 @@ public final class CachedWorld implements ICachedWorld, Helper {
         public void run() {
             while (true) {
                 try {
-                    ChunkPos pos = toPackQueue.take();
-                    LevelChunk chunk = toPackMap.remove(pos);
-                    if (toPackQueue.size() > Baritone.settings().chunkPackerQueueMaxSize.value) {
-                        continue;
+                    synchronized (packingLock) {
+                        ChunkPos pos = toPackQueue.poll(250, TimeUnit.MILLISECONDS);
+                        if (pos == null) {
+                            continue;
+                        }
+                        LevelChunk chunk = toPackMap.remove(pos);
+                        if (toPackQueue.size() > Baritone.settings().chunkPackerQueueMaxSize.value) {
+                            continue;
+                        }
+                        CachedChunk cached = ChunkPacker.pack(chunk);
+                        CachedWorld.this.updateCachedChunk(cached);
                     }
-                    CachedChunk cached = ChunkPacker.pack(chunk);
-                    CachedWorld.this.updateCachedChunk(cached);
                     //System.out.println("Processed chunk at " + chunk.x + "," + chunk.z);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
                     break;
                 } catch (Throwable th) {
                     // in the case of an exception, keep consuming from the queue so as not to leak memory

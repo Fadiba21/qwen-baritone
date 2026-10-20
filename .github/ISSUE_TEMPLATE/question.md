@@ -1,14 +1,14 @@
 ---
-name: Question
-about: Please file a separate report for each question
-title: Please add a brief but descriptive title
+name: Pertanyaan
+about: Ajukan pertanyaan tentang penggunaan atau kontribusi
+title: ''
 labels: question
 assignees: ''
 ---
 
-## What do you need help with?
-With as much detail as possible, describe your question and what you may need help with.
+## Pertanyaan
 
-## Final checklist
-- [x] I know how to properly use check boxes 
-- [ ] I have not used any OwO's or UwU's in this issue.
+## Konteks yang diperlukan
+Sebutkan versi Qwen Baritone dan Minecraft 26.2, serta langkah yang sudah dicoba.
+
+Jangan sertakan API key/token, kata sandi, konfigurasi lokal, log sensitif, atau file world pribadi.

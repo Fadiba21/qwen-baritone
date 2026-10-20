@@ -33,7 +33,11 @@ import net.minecraft.world.level.block.state.properties.Property;
 import org.apache.commons.lang3.Validate;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -52,6 +56,54 @@ public final class LitematicaSchematic extends CompositeSchematic implements ISt
     public LitematicaSchematic(CompoundTag nbt) {
         super(0, 0, 0);
         fillInSchematic(nbt);
+    }
+
+    /** Block ids that were renamed between Minecraft versions; old litematics still contain the old ids. */
+    private static final Map<String, String> RENAMES = Map.of(
+        "minecraft:grass", "minecraft:short_grass",
+        "minecraft:grass_path", "minecraft:dirt_path",
+        "minecraft:sign", "minecraft:oak_sign",
+        "minecraft:wall_sign", "minecraft:oak_wall_sign"
+    );
+    private static final long MAX_BLOCKS = 1_000_000_000L;
+
+    private final List<String> warnings = new ArrayList<>();
+    private Vec3i minCorner = Vec3i.ZERO;
+    private final Map<String, Vec3i> regionPositions = new LinkedHashMap<>();
+    private final Map<String, Integer> unknownBlocks = new LinkedHashMap<>();
+    private int skippedProperties;
+    private int outOfRangeIndexes;
+
+    /** Non-fatal problems found while loading (unknown blocks, skipped properties, newer format version...). */
+    public List<String> getWarnings() {
+        List<String> all = new ArrayList<>(warnings);
+        if (!unknownBlocks.isEmpty()) {
+            StringBuilder sb = new StringBuilder("Unknown blocks replaced by air (mod/version mismatch): ");
+            int n = 0;
+            for (Map.Entry<String, Integer> e : unknownBlocks.entrySet()) {
+                if (n++ > 0) sb.append(", ");
+                if (n > 8) { sb.append("... +").append(unknownBlocks.size() - 8).append(" more"); break; }
+                sb.append(e.getKey());
+            }
+            all.add(sb.toString());
+        }
+        if (skippedProperties > 0) all.add(skippedProperties + " block properties were not valid for this Minecraft version and were skipped.");
+        if (outOfRangeIndexes > 0) all.add(outOfRangeIndexes + " blocks pointed outside the palette and were replaced by air.");
+        return all;
+    }
+
+    /** Lowest corner of all regions, relative to the litematic's own origin (where a placement origin applies). */
+    public Vec3i getMinCorner() {
+        return minCorner;
+    }
+
+    /** Raw saved "Position" of each region by name; used to detect whether a Litematica placement moved a region. */
+    public Map<String, Vec3i> getRegionPositions() {
+        return Collections.unmodifiableMap(regionPositions);
+    }
+
+    public void addWarning(String warning) {
+        warnings.add(warning);
     }
 
     /**
@@ -83,19 +135,26 @@ public final class LitematicaSchematic extends CompositeSchematic implements ISt
      * @param blockStatePalette List of all different block types used in the schematic.
      * @return Array of BlockStates.
      */
-    private static BlockState[] getBlockList(ListTag blockStatePalette) {
+    private BlockState[] getBlockList(ListTag blockStatePalette) {
         BlockState[] blockList = new BlockState[blockStatePalette.size()];
 
         for (int i = 0; i < blockStatePalette.size(); i++) {
-            CompoundTag tag = (CompoundTag) blockStatePalette.get(i);
-            Identifier blockKey = Identifier.tryParse(tag.getString("Name").orElse(""));
+            if (!(blockStatePalette.get(i) instanceof CompoundTag tag)) {
+                blockList[i] = Blocks.AIR.defaultBlockState();
+                continue;
+            }
+            String name = tag.getString("Name").orElse("");
+            String renamed = RENAMES.getOrDefault(name, name);
+            Identifier blockKey = Identifier.tryParse(renamed);
             Block block = blockKey == null
-                ? Blocks.AIR
-                : BuiltInRegistries.BLOCK.get(blockKey)
-                    .map(Holder.Reference::value)
-                    .orElse(Blocks.AIR);
+                ? null
+                : BuiltInRegistries.BLOCK.get(blockKey).map(Holder.Reference::value).orElse(null);
+            if (block == null) {
+                if (!name.isEmpty()) unknownBlocks.merge(name, 1, Integer::sum);
+                blockList[i] = Blocks.AIR.defaultBlockState();
+                continue;
+            }
             CompoundTag properties = tag.getCompound("Properties").orElse(new CompoundTag());
-
             blockList[i] = getBlockState(block, properties);
         }
         return blockList;
@@ -106,14 +165,17 @@ public final class LitematicaSchematic extends CompositeSchematic implements ISt
      * @param properties List of Properties the block has.
      * @return A blockState.
      */
-    private static BlockState getBlockState(Block block, CompoundTag properties) {
+    private BlockState getBlockState(Block block, CompoundTag properties) {
         BlockState blockState = block.defaultBlockState();
 
         for (String key : properties.keySet()) {
             Property<?> property = block.getStateDefinition().getProperty(key);
             String propertyValue = properties.getString(key).orElse(null);
-            if (property != null) {
-                blockState = setPropertyValue(blockState, property, propertyValue);
+            if (property != null && propertyValue != null) {
+                BlockState next = setPropertyValue(blockState, property, propertyValue);
+                if (next == null) skippedProperties++; else blockState = next;
+            } else {
+                skippedProperties++;
             }
         }
         return blockState;
@@ -124,11 +186,7 @@ public final class LitematicaSchematic extends CompositeSchematic implements ISt
      */
     private static <T extends Comparable<T>> BlockState setPropertyValue(BlockState state, Property<T> property, String value) {
         Optional<T> parsed = property.getValue(value);
-        if (parsed.isPresent()) {
-            return state.setValue(property, parsed.get());
-        } else {
-            throw new IllegalArgumentException("Invalid value for property " + property);
-        }
+        return parsed.isPresent() ? state.setValue(property, parsed.get()) : null;
     }
 
     /**
@@ -136,7 +194,7 @@ public final class LitematicaSchematic extends CompositeSchematic implements ISt
      * @return amount of bits used to encode a block.
      */
     private static int getBitsPerBlock(int amountOfBlockTypes) {
-        return (int) Math.max(2, Math.ceil(Math.log(amountOfBlockTypes) / Math.log(2)));
+        return Math.max(2, 32 - Integer.numberOfLeadingZeros(Math.max(1, amountOfBlockTypes) - 1));
     }
 
     /**
@@ -147,7 +205,7 @@ public final class LitematicaSchematic extends CompositeSchematic implements ISt
      */
     private static long getVolume(CompoundTag subReg) {
         CompoundTag size = subReg.getCompound("Size").orElse(new CompoundTag());
-        return Math.abs(size.getInt("x").orElse(0) * size.getInt("y").orElse(0) * size.getInt("z").orElse(0));
+        return Math.abs((long) size.getInt("x").orElse(0) * (long) size.getInt("y").orElse(0) * (long) size.getInt("z").orElse(0));
     }
 
     /**
@@ -166,14 +224,41 @@ public final class LitematicaSchematic extends CompositeSchematic implements ISt
      * reads the file data.
      */
     private void fillInSchematic(CompoundTag nbt) {
+        CompoundTag[] regions = getRegions(nbt);
+        if (regions.length == 0) {
+            throw new IllegalArgumentException("This litematic has no regions (empty schematic, or not a real .litematic file).");
+        }
         Vec3i offsetMinCorner = new Vec3i(getMinOfSchematic(nbt, "x"), getMinOfSchematic(nbt, "y"), getMinOfSchematic(nbt, "z"));
-        for (CompoundTag subReg : getRegions(nbt)) {
+        this.minCorner = offsetMinCorner;
+        nbt.getCompound("Regions").ifPresent(all -> {
+            for (String name : all.keySet()) {
+                all.getCompound(name).ifPresent(region -> {
+                    CompoundTag pos = region.getCompound("Position").orElse(new CompoundTag());
+                    regionPositions.put(name, new Vec3i(pos.getInt("x").orElse(0), pos.getInt("y").orElse(0), pos.getInt("z").orElse(0)));
+                });
+            }
+        });
+        for (CompoundTag subReg : regions) {
+            long regionVolume = getVolume(subReg);
+            if (regionVolume == 0) {
+                continue;
+            }
+            if (regionVolume > MAX_BLOCKS) {
+                throw new IllegalArgumentException("A region is too large (" + regionVolume + " blocks).");
+            }
             ListTag usedBlockTypes = subReg.getListOrEmpty("BlockStatePalette");
+            if (usedBlockTypes.isEmpty()) {
+                throw new IllegalArgumentException("A region has an empty block palette: the file is damaged or incomplete.");
+            }
             BlockState[] blockList = getBlockList(usedBlockTypes);
 
             int bitsPerBlock = getBitsPerBlock(usedBlockTypes.size());
-            long regionVolume = getVolume(subReg);
             long[] blockStateArray = subReg.getLongArray("BlockStates").orElse(new long[0]);
+            long neededLongs = (regionVolume * bitsPerBlock + 63L) / 64L;
+            if (blockStateArray.length < neededLongs) {
+                throw new IllegalArgumentException("Block data is truncated (" + blockStateArray.length + " of " + neededLongs
+                    + " data blocks present): the file is damaged or was saved incompletely.");
+            }
 
             LitematicaBitArray bitArray = new LitematicaBitArray(bitsPerBlock, regionVolume, blockStateArray);
             writeSubregionIntoSchematic(subReg, offsetMinCorner, blockList, bitArray);
@@ -199,7 +284,13 @@ public final class LitematicaSchematic extends CompositeSchematic implements ISt
         for (int y = 0; y < sizeY; y++) {
             for (int z = 0; z < sizeZ; z++) {
                 for (int x = 0; x < sizeX; x++) {
-                    states[x][z][y] = blockList[bitArray.getAt(index)];
+                    int id = bitArray.getAt(index);
+                    if (id >= blockList.length) {
+                        outOfRangeIndexes++;
+                        states[x][z][y] = Blocks.AIR.defaultBlockState();
+                    } else {
+                        states[x][z][y] = blockList[id];
+                    }
                     index++;
                 }
             }

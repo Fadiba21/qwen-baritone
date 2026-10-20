@@ -32,6 +32,8 @@ unimined.minecraft {
     }
 }
 
+repositories { maven { url = "https://maven.terraformersmc.com/releases/" } }
+
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
@@ -48,10 +50,22 @@ dependencies {
         shadowCommon sourceSet.output
     }
     include "dev.babbaj:nether-pathfinder:${project.nether_pathfinder_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api-base:2.0.4+ece063239e"
+    implementation "net.fabricmc.fabric-api:fabric-key-mapping-api-v1:2.0.5+e2bdee789e"
+    implementation "net.fabricmc.fabric-api:fabric-lifecycle-events-v1:4.1.4+29b6eb019e"
+    implementation "net.fabricmc.fabric-api:fabric-resource-loader-v1:2.0.13+9edec1269e"
+    include "net.fabricmc.fabric-api:fabric-api-base:2.0.4+ece063239e"
+    include "net.fabricmc.fabric-api:fabric-key-mapping-api-v1:2.0.5+e2bdee789e"
+    include "net.fabricmc.fabric-api:fabric-lifecycle-events-v1:4.1.4+29b6eb019e"
+    include "net.fabricmc.fabric-api:fabric-resource-loader-v1:2.0.13+9edec1269e"
+    compileOnly "com.terraformersmc:modmenu:20.0.3"
+    testImplementation 'junit:junit:4.13.2'
 }
 
 processResources {
     inputs.property "version", project.version
+
+    filesMatching("qwenui-build.properties") { expand "version": project.version }
 
     filesMatching("fabric.mod.json") {
         expand "version": project.version
@@ -61,6 +75,7 @@ processResources {
 shadowJar {
     configurations = [project.configurations.shadowCommon]
     archiveClassifier.set "dev-shadow"
+    from(rootProject.file('LICENSE')) { into 'META-INF'; rename { 'LICENSE-Baritone.txt' } }
 }
 
 remapJar {
@@ -88,7 +103,12 @@ task createDist(type: CreateDistTask, dependsOn: proguard) {
     compType "fabric"
 }
 
-build.finalizedBy(createDist)
+// QwenUI deliberately ships the complete remapped fork, not the upstream stripped variants.
+build.dependsOn(remapJar)
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
 
 publishing {
     publications {
@@ -102,4 +122,18 @@ publishing {
     repositories {
         // Add repositories to publish to here.
     }
+}
+
+sourceSets.test {
+    compileClasspath += sourceSets.main.compileClasspath
+    runtimeClasspath += sourceSets.main.runtimeClasspath
+}
+
+// Keep the native #version command informative in the distributed fork.
+tasks.withType(Jar).configureEach {
+    manifest { attributes(
+        "Implementation-Title": "Baritone QwenUI",
+        "Implementation-Version": project.version.toString(),
+        "Implementation-Vendor": "Baritone QwenUI contributors"
+    ) }
 }

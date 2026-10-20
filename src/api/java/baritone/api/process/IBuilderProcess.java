@@ -51,6 +51,20 @@ public interface IBuilderProcess extends IBaritoneProcess {
      */
     boolean build(String name, File schematic, Vec3i origin);
 
+    /**
+     * @return the human readable reason the last {@link #build(String, File, Vec3i)} call failed, or {@code null}.
+     */
+    default String getLastLoadError() {
+        return null;
+    }
+
+    /**
+     * @return non-fatal warnings from the last successful schematic load (unknown blocks etc.); never null.
+     */
+    default java.util.List<String> getLastLoadWarnings() {
+        return java.util.Collections.emptyList();
+    }
+
     @Deprecated
     default boolean build(String schematicFile, BlockPos origin) {
         File file = new File(new File(Minecraft.getInstance().gameDirectory, "schematics"), schematicFile);
@@ -59,6 +73,11 @@ public interface IBuilderProcess extends IBaritoneProcess {
 
     void buildOpenSchematic();
 
+    /**
+     * Builds a placement loaded in Litematica.
+     *
+     * @param i 0-based index in Litematica's placement list, or a negative number for the selected placement
+     */
     void buildOpenLitematic(int i);
 
     void pause();

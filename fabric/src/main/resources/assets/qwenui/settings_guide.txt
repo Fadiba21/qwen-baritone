@@ -1,0 +1,264 @@
+# Baritone QwenUI - metadata setting
+# Format: name|category|level|min|max|step|label_id|desc_id
+# level: 0 = dasar, 1 = lanjutan, 2 = eksperimental / berisiko
+# min/max/step dipakai untuk slider (kosong = tanpa slider)
+#
+# --- Pergerakan ---
+allowSprint|move|0||||Boleh Sprint|Izinkan Baritone berlari (sprint) saat berjalan.
+sprintInWater|move|1||||Sprint di Air|Tetap sprint saat berada di dalam air.
+sprintAscends|move|1||||Sprint Saat Naik|Sprint dan lompat satu blok lebih awal saat naik tangga/blok.
+allowParkour|move|2||||Parkour|Izinkan lompatan parkour. Sangat tidak andal, sering jatuh di tikungan dan melewati titik pendaratan.
+allowParkourPlace|move|2||||Parkour + Pasang Blok|Parkour dengan memasang blok untuk mendarat. Cukup andal dan tidak lebih berbahaya dari parkour biasa.
+allowParkourAscend|move|2||||Parkour Naik|Izinkan parkour naik. Hanya berlaku jika Parkour juga aktif.
+allowDiagonalDescend|move|2||||Turun Diagonal|Turun secara diagonal. Lebih aman dari parkour tapi bisa menyentuh blok yang tidak dicek (berbahaya di Nether).
+allowDiagonalAscend|move|1||||Naik Diagonal|Naik secara diagonal. Cukup aman, jauh lebih aman daripada turun diagonal.
+allowDownward|move|1||||Gali ke Bawah|Boleh menggali blok tepat di bawah kaki. Matikan agar membuat tangga, bukan lubang vertikal.
+allowVines|move|2||||Fitur Vines Lanjutan|Aktifkan fitur vines lanjutan. Hanya gimmick dan bisa membuat Baritone terjebak. Hampir tidak pernah perlu.
+allowWalkOnBottomSlab|move|1||||Jalan di Slab Bawah|Perilaku slab rumit. Matikan untuk keandalan jalur lebih tinggi, biarkan aktif jika base penuh slab bawah.
+allowWalkOnMagmaBlocks|move|1||||Jalan di Magma|Berjalan sambil sneak ketika ada magma block di bawah kaki.
+allowOvershootDiagonalDescend|move|1||||Overshoot Turun Diagonal|Boleh sprint melewati turun lalu diagonal. Pemain melewati titik pendaratan tetapi tidak sampai jatuh.
+overshootTraverse|move|1||||Overshoot Traverse|Jika melewati tujuan satu blok, anggap tetap berhasil. Membantu kecepatan di atas 20 m/s.
+allowJumpAtBuildLimit|move|2||||Lompat di Batas Build|Parkour boleh melompat saat berdiri di blok ketinggian maksimum. Default mati karena gagal di server tertentu.
+assumeWalkOnWater|move|2||||Anggap Bisa Jalan di Air|Anggap air tenang bisa diinjak seperti blok biasa (untuk mod Jesus). Mengganggu frost walker.
+assumeWalkOnLava|move|2||||Anggap Bisa Jalan di Lava|Anggap lava bisa diinjak. Hanya masuk akal jika punya Fire Resistance dan Jesus.
+assumeStep|move|2||||Anggap Step Hack|Asumsikan ada fungsi step; tidak melompat saat naik satu blok.
+assumeSafeWalk|move|2||||Anggap Safe Walk|Asumsikan ada safe walk; tidak sneak saat backplace. Bisa membuka chest bukannya memasang blok.
+allowWaterBucketFall|move|2||||Jatuh + Ember Air|Boleh jatuh dari ketinggian lalu menaruh ember air di bawah. Keandalan dipertanyakan.
+maxFallHeightNoWater|move|1|0|50|1|Tinggi Jatuh Maks (tanpa air)|Seberapa tinggi boleh jatuh ke tanah tanpa ember air. 3 tidak memberi damage.
+maxFallHeightBucket|move|1|0|250|1|Tinggi Jatuh Maks (ember)|Seberapa tinggi boleh jatuh dengan ember air. Di bawah 23 agar tidak membunuh pemain tanpa armor.
+jumpPenalty|move|1|0|20|0.5|Penalti Lompat|Biaya tambahan untuk menekan spasi (naik, pillar, parkour) karena menguras lapar.
+walkOnWaterOnePenalty|move|1|0|30|0.5|Penalti Jalan di Air|Berjalan di air menguras lapar sangat cepat, jadi diberi penalti.
+walkWhileBreaking|move|0||||Jalan Sambil Menghancurkan|Jangan berhenti berjalan ke depan saat perlu menghancurkan blok yang menghalangi.
+enterPortal|move|0||||Masuk Portal|Saat goto ke portal nether, jalan sampai masuk ke dalam portal, bukan berhenti satu blok sebelumnya.
+rightClickContainerOnArrival|move|0||||Buka Container Saat Tiba|Saat goto ke container (chest, furnace, dsb), klik kanan dan buka setelah sampai.
+movementTimeoutTicks|move|1|10|1000|10|Timeout Gerakan (tick)|Batalkan gerakan jika memakan waktu sekian tick lebih lama dari estimasi awal.
+# --- Hancurkan Blok ---
+allowBreak|break|0||||Boleh Hancurkan Blok|Izinkan Baritone menghancurkan blok.
+allowBreakAnyway|break|0||||Tetap Boleh Dihancurkan|Daftar blok yang tetap boleh dihancurkan walau Boleh Hancurkan Blok dimatikan.
+blocksToDisallowBreaking|break|0||||Blok Terlarang Dihancurkan|Daftar blok yang tidak boleh dihancurkan sama sekali.
+blocksToAvoidBreaking|break|0||||Blok Dihindari Dihancurkan|Daftar blok yang sebaiknya tidak dihancurkan, tapi boleh jika terpaksa.
+avoidBreakingMultiplier|break|1|0|5|0.05|Pengali Hindari Hancurkan|Pengali kecepatan hancur untuk blok yang dihindari. Di atas 1 berarti justru didorong untuk dihancurkan.
+blockBreakAdditionalPenalty|break|1|0|20|0.5|Penalti Tambahan Hancurkan|Pemisah seri agar Baritone lebih memilih rute tanpa menghancurkan blok jika biayanya sama.
+blockBreakSpeed|break|1|1|20|1|Jeda Hancurkan Blok (tick)|Jeda tick antara selesai menghancurkan satu blok dan mulai blok berikutnya. Default game 6.
+strictLiquidCheck|break|1||||Cek Cairan Ketat|Jangan hancurkan blok di sebelah cairan. Aktifkan jika ada mod fisika cairan kustom.
+avoidUpdatingFallingBlocks|break|0||||Hindari Blok Jatuh|Jangan hancurkan blok yang bersebelahan dengan blok jatuh tak tertopang (mencegah pasir/kerikil runtuh berantai).
+pauseMiningForFallingBlocks|break|0||||Tunggu Blok Jatuh|Saat menghancurkan blok untuk bergerak, tunggu semua blok jatuh selesai dulu.
+breakFromAbove|break|2||||Hancurkan dari Atas|Boleh berdiri di atas blok saat menghancurkannya di Builder. Eksperimental.
+goalBreakFromAbove|break|2||||Goal Hancurkan dari Atas|Selain break from above, set goal ke atas dan samping blok yang dihancurkan. Aktifkan hanya bersama Hancurkan dari Atas.
+useSwordToMine|break|0||||Pakai Pedang untuk Mining|Gunakan pedang saat mining jika cocok.
+# --- Taruh Blok ---
+allowPlace|place|0||||Boleh Taruh Blok|Izinkan Baritone menaruh blok.
+allowPlaceInFluidsSource|place|1||||Taruh di Sumber Cairan|Boleh menaruh blok di blok sumber cairan.
+allowPlaceInFluidsFlow|place|1||||Taruh di Cairan Mengalir|Boleh menaruh blok di cairan yang mengalir.
+blockPlacementPenalty|place|1|0|100|1|Penalti Taruh Blok|Biaya tinggi agar menghemat blok yang jumlahnya terbatas. Turunkan agar rute yang butuh pasang blok lebih sering dipilih.
+acceptableThrowawayItems|place|0||||Blok Buangan|Blok yang boleh dipakai Baritone untuk dipasang (sneak bridging, pillar, dsb).
+rightClickSpeed|place|1|0|20|1|Jeda Klik Kanan (tick)|Berapa tick antar klik kanan. Default game 4.
+backfill|place|1||||Isi Blok di Belakang|Isi blok di belakang saat berjalan.
+# --- Inventory & Tool ---
+autoTool|inv|0||||Auto Tool|Otomatis memilih tool terbaik yang tersedia.
+assumeExternalAutoTool|inv|2||||Anggap Auto Tool Eksternal|Matikan auto tool Baritone, tapi anggap mod lain yang menyediakannya saat menghitung jalur.
+allowInventory|inv|1||||Pindah Item Inventory|Izinkan Baritone memindahkan item di inventory ke hotbar.
+ticksBetweenInventoryMoves|inv|1|0|20|1|Jeda Pindah Inventory (tick)|Tunggu sekian tick di antara pemindahan item inventory.
+inventoryMoveOnlyIfStationary|inv|2||||Pindah Inventory Saat Diam|Berhenti dulu sebelum memindahkan item inventory. Untuk anticheat seperti 2b2t.
+itemSaver|inv|0||||Item Saver|Berhenti memakai tool sebelum rusak.
+itemSaverThreshold|inv|0|1|100|1|Sisa Durability Item Saver|Durability yang disisakan pada tool saat Item Saver aktif.
+preferSilkTouch|inv|1||||Utamakan Silk Touch|Selalu pilih tool silk touch dibanding tool biasa dengan kecepatan sama.
+# --- Builder & Schematic ---
+buildInLayers|build|0||||Bangun Per Layer|Jangan lanjut ke layer berikutnya sebelum layer sekarang selesai.
+layerOrder|build|0||||Layer dari Atas ke Bawah|Mati: bangun dari bawah ke atas. Hidup: dari atas ke bawah.
+layerHeight|build|0|1|64|1|Tinggi Layer|Seberapa tinggi setiap layer.
+startAtLayer|build|0|0|512|1|Mulai dari Layer|Mulai membangun dari layer tertentu. Membantu pada build besar.
+skipFailedLayers|build|1||||Lewati Layer Gagal|Jika sebuah layer tidak bisa dibangun, lewati saja.
+buildOnlySelection|build|0||||Bangun Hanya Seleksi|Hanya membangun bagian schematic yang terseleksi.
+buildRepeat|build|1||||Ulangi Build (Jarak)|Jarak perpindahan sebelum mengulang build. 0 untuk menonaktifkan di sumbu itu, 0,0,0 menonaktifkan total.
+buildRepeatCount|build|1|-1|100|1|Jumlah Ulang Build|Berapa kali mengulang build. -1 untuk tak terbatas.
+buildRepeatSneaky|build|2||||Ulang Build Diam-diam|Jangan beri tahu schematic bahwa ia dipindahkan. Untuk kompatibilitas lama.
+buildIgnoreBlocks|build|0||||Blok Dianggap Udara|Blok yang dianggap udara. Jika schematic minta udara dan posisi berisi blok ini, dianggap benar.
+buildSkipBlocks|build|0||||Blok Dianggap Benar|Blok yang dianggap benar. Jika schematic minta blok ini, posisi apa pun dianggap benar.
+buildValidSubstitutes|build|1||||Substitusi Diterima|Pemetaan blok -> daftar blok yang juga diterima di posisi itu. Format: sumber->blokA,blokB.
+buildSubstitutes|build|1||||Substitusi Dibangun|Pemetaan blok -> blok pengganti yang dibangun. Format: sumber->blokA,blokB.
+okIfAir|build|1||||Blok Jadi Udara|Daftar blok yang diubah menjadi udara. Jika schematic minta blok ini, hanya udara yang diterima.
+buildIgnoreExisting|build|0||||Abaikan Blok yang Ada|Anggap semua blok non-udara sudah benar. Hanya menaruh blok baru.
+buildIgnoreDirection|build|1||||Abaikan Arah Blok|Abaikan arah blok seperti glazed terracotta.
+buildIgnoreProperties|build|1||||Properti Diabaikan|Daftar nama properti blok yang diabaikan builder.
+mapArtMode|build|1||||Mode Map Art|Bangun dalam mode map art: hanya peduli blok teratas di tiap kolom.
+okIfWater|build|1||||Abaikan Air|Jangan koreksi blok yang saat ini berupa air.
+incorrectSize|build|2|10|2000|10|Batas Blok Salah|Jumlah blok salah tidak boleh melebihi ukuran ini.
+breakCorrectBlockPenaltyMultiplier|build|2|0|100|1|Pengali Penalti Hancurkan Blok Benar|Pengali biaya menghancurkan blok yang sudah benar menurut schematic.
+placeIncorrectBlockPenaltyMultiplier|build|2|0|50|1|Pengali Penalti Taruh Blok Salah|Pengali biaya menaruh blok yang salah menurut schematic.
+schematicOrientationX|build|1||||Orientasi Schematic X|Bangun dengan koordinat X tertinggi sebagai origin, bukan yang terendah.
+schematicOrientationY|build|1||||Orientasi Schematic Y|Bangun dengan koordinat Y tertinggi sebagai origin, bukan yang terendah.
+schematicOrientationZ|build|1||||Orientasi Schematic Z|Bangun dengan koordinat Z tertinggi sebagai origin, bukan yang terendah.
+buildSchematicRotation|build|0||||Rotasi Schematic|Putar schematic sebelum dibangun: NONE, CLOCKWISE_90, CLOCKWISE_180, COUNTERCLOCKWISE_90.
+buildSchematicMirror|build|0||||Mirror Schematic|Cerminkan schematic sebelum dibangun: NONE, FRONT_BACK, LEFT_RIGHT.
+schematicFallbackExtension|build|1||||Ekstensi Schematic Default|Ekstensi default untuk perintah build jika tidak disebutkan.
+builderTickScanRadius|build|1|1|32|1|Radius Scan Builder|Jarak scan tiap tick untuk update. Naikkan di atas jangkauan hanya untuk schematic sangat besar.
+distanceTrim|build|1||||Pangkas Jarak Jauh|Pangkas posisi salah yang terlalu jauh. Meningkatkan performa tapi mengurangi keandalan pada schematic besar.
+# --- Mining, Eksplorasi & Farm ---
+mineScanDroppedItems|mine|0||||Cari Item Jatuh|Saat mining, juga jadikan item jatuh yang sesuai sebagai tujuan.
+mineDropLoiterDurationMSThanksLouca|mine|1|0|2000|50|Tunggu Drop (ms)|Tunggu sekian ms setelah menambang ore untuk melihat apakah menjatuhkan item, sebelum lanjut.
+mineGoalUpdateInterval|mine|1|0|40|1|Interval Update Goal Mining|Scan ulang goal tiap sekian tick. 0 untuk menonaktifkan.
+maxCachedWorldScanCount|mine|1|1|200|1|Maks Scan Cache|Berhenti memperluas pencarian chunk setelah menemukan sekian blok target di cache.
+mineMaxOreLocationsCount|mine|1|1|1024|1|Maks Lokasi Ore|Mining tidak akan mengingat lebih dari sekian lokasi target.
+minYLevelWhileMining|mine|0|-64|320|1|Y Minimum Mining|Y minimum saat mining. 0 untuk mematikan. Jika dunia punya Y negatif, kurangi dengan tinggi minimum dunia.
+maxYLevelWhileMining|mine|0|-64|2031|1|Y Maksimum Mining|Y maksimum untuk menambang ore.
+allowOnlyExposedOres|mine|1||||Hanya Ore Terlihat|Hanya tambang ore yang terpapar. Berguna melawan ore obfuscator di server.
+allowOnlyExposedOresDistance|mine|1|1|8|1|Jarak Cek Ore Terlihat|Jarak pencarian saat Hanya Ore Terlihat aktif. Jaga tetap kecil karena memperlambat kalkulasi.
+legitMine|mine|0||||Legit Mine|Larang X-Ray. Hanya menambang ore setelah benar-benar terlihat, seperti pemain normal.
+legitMineYLevel|mine|0|-64|320|1|Y Level Legit Mine|Y level yang dituju untuk strip mining legit.
+legitMineIncludeDiagonals|mine|2||||Legit Mine Diagonal|Melihat ore yang bersentuhan diagonal dengan ore yang sudah ditemukan, tanpa benar-benar terlihat. Tidak legit sepenuhnya.
+forceInternalMining|mine|1||||Mining Dua Sekaligus|Saat menambang, coba tambang dua blok sekaligus bila blok atas/bawah juga target.
+internalMiningAirException|mine|1||||Pengecualian Udara Internal|Hanya berlaku jika Mining Dua Sekaligus aktif: terapkan hanya jika blok sebelah goal bukan udara.
+exploreForBlocks|mine|0||||Eksplor Cari Blok|Saat GetToBlock atau Mine non-legit tidak tahu lokasi blok, jelajahi acak alih-alih menyerah.
+worldExploringChunkOffset|mine|1|0|32|1|Offset Eksplorasi Chunk|Offset chunk terdekat yang belum dimuat saat eksplorasi. Setel ke render distance untuk loading lebih efisien.
+exploreChunkSetMinimumSize|mine|1|1|100|1|Ukuran Set Chunk Eksplorasi|Ambil sekian chunk terdekat walau tidak sama jaraknya.
+exploreMaintainY|mine|1|-1|320|1|Pertahankan Y Eksplorasi|Usahakan menjaga koordinat Y saat eksplorasi. -1 untuk mematikan.
+disableCompletionCheck|mine|2||||Nonaktifkan Cek Selesai|Aktifkan jika explore filter sangat besar dan Anda tidak butuh pengecekan selesai.
+replantCrops|mine|0||||Tanam Ulang Tanaman|Tanam ulang tanaman biasa saat farming; kaktus dan tebu dibiarkan tumbuh lagi.
+replantNetherWart|mine|0||||Tanam Ulang Nether Wart|Tanam ulang nether wart saat farming. Hanya berlaku jika Tanam Ulang Tanaman aktif.
+farmUsingSelection|mine|0||||Farm Hanya di Seleksi|Batasi farming hanya pada seleksi saat ini.
+farmMaxScanSize|mine|1|16|2048|16|Ukuran Scan Farm|Farming memindai paling banyak sekian blok.
+extendCacheOnThreshold|mine|2||||Perluas Cache|Jika scan cache memberi blok kurang dari batas maksimum (tapi di atas nol), scan dunia utama juga. Butuh CPU kuat.
+blacklistClosestOnFailure|mine|0||||Blacklist Saat Gagal|Jika jalur ke blok gagal dihitung, tandai blok terdekat sebagai tidak terjangkau lalu lanjut ke berikutnya.
+axisHeight|mine|1|-64|320|1|Tinggi Axis|Perintah axis menuju sumbu (atau sumbu diagonal) pada Y level ini.
+# --- Pathfinding ---
+costHeuristic|path|2|2|8|0.01|Heuristik Biaya (A*)|Pengaturan utama A*. Selama meremehkan biaya, jalur terbaik dijamin. 3.5 aman saat sprint, 4.6 jika hanya jalan.
+pathingMaxChunkBorderFetch|path|1|1|500|1|Maks Fetch Batas Chunk|Berapa kali boleh mengambil di luar chunk termuat/cache sebelum dianggap sampai ujung area yang diketahui.
+backtrackCostFavoringCoefficient|path|1|0|2|0.05|Koefisien Favor Mundur|Setel 1.0 untuk menonaktifkan fitur ini.
+minimumImprovementRepropagation|path|2||||Repropagasi Minimum|Jangan propagasi ulang perbaikan biaya di bawah 0.01 tick (hanya ketidakakuratan floating point).
+cutoffAtLoadBoundary|path|1||||Potong di Batas Chunk|Potong jalur hanya sampai bagian yang sepenuhnya berada di chunk termuat. Meningkatkan keamanan.
+maxCostIncrease|path|1|0|100|1|Maks Kenaikan Biaya|Jika biaya gerakan naik lebih dari ini antara kalkulasi dan eksekusi, batalkan dan hitung ulang.
+costVerificationLookahead|path|1|0|30|1|Lookahead Verifikasi Biaya|Berhenti sekian gerakan sebelum bagian yang berubah jadi mustahil (misal lava menyebar).
+pathCutoffFactor|path|1|0|1|0.01|Faktor Potong Jalur|0.9 berarti memotong 10% terakhir semua jalur.
+pathCutoffMinimumLength|path|1|0|200|1|Panjang Minimum Potong|Terapkan potong statis hanya untuk jalur sepanjang ini atau lebih (jumlah gerakan).
+planningTickLookahead|path|1|0|600|10|Lookahead Perencanaan|Mulai merencanakan jalur berikutnya saat sisa estimasi tick di bawah nilai ini.
+simplifyUnloadedYCoord|path|1||||Sederhanakan Y Belum Dimuat|Jika goal GoalBlock ada di chunk belum dimuat, anggap Y belum penting dan pakai GoalXZ dulu.
+repackOnAnyBlockChange|path|1||||Repack Saat Blok Berubah|Setiap blok berubah, pack ulang seluruh chunknya.
+splicePath|path|1||||Sambung Jalur|Jika segmen baru berawal di ujung segmen sekarang, sambungkan menjadi jalur lebih panjang.
+maxPathHistoryLength|path|1|10|2000|10|Panjang Riwayat Jalur|Jika sudah lebih dari sekian gerakan dalam jalur, buang segmen tertua.
+pathHistoryCutoffAmount|path|1|1|500|1|Jumlah Potong Riwayat|Jika jalur terlalu panjang, potong sekian gerakan dari awal.
+primaryTimeoutMS|path|1|50|10000|50|Timeout Utama (ms)|Pathing berhenti setelah waktu ini, tapi hanya jika sudah ada jalur.
+failureTimeoutMS|path|1|100|20000|100|Timeout Gagal (ms)|Pathing tidak boleh lebih lama dari ini walau gagal menemukan jalur.
+planAheadPrimaryTimeoutMS|path|1|100|30000|100|Timeout Utama Rencana Depan (ms)|Perencanaan ke depan berhenti setelah waktu ini, jika sudah ada jalur.
+planAheadFailureTimeoutMS|path|1|100|30000|100|Timeout Gagal Rencana Depan (ms)|Perencanaan ke depan tidak boleh lebih lama dari ini.
+pathThroughCachedOnly|path|2||||Hanya Lewat Cache|Hanya pakai chunk cache untuk pathing. Jangan pernah dinyalakan.
+cancelOnGoalInvalidation|path|1||||Batal Jika Goal Tak Valid|Batalkan jalur jika goal berubah dan jalur awalnya berakhir di goal tapi sekarang tidak lagi.
+slowPath|path|2||||Slow Path (Debug)|Untuk debugging: menimbang node jauh lebih lambat.
+slowPathTimeDelayMS|path|2|0|1000|10|Jeda Slow Path (ms)|Milidetik antar node saat Slow Path aktif.
+slowPathTimeoutMS|path|2|1000|120000|1000|Timeout Slow Path (ms)|Timeout alternatif saat Slow Path aktif.
+considerPotionEffects|path|0||||Pertimbangkan Efek Potion|Misal Mining Fatigue atau Haste: sesuaikan biaya menghancurkan blok.
+# --- Performa & Cache ---
+chunkCaching|perf|0||||Cache Chunk|Unduh semua chunk dalam format 2-bit sederhana dan simpan untuk pathing jarak sangat jauh.
+pruneRegionsFromRAM|perf|1||||Bersihkan Region dari RAM|Saat menyimpan, hapus dari RAM region cache yang lebih dari 1024 blok dari pemain.
+chunkPackerQueueMaxSize|perf|1|100|20000|100|Ukuran Antrean Chunk Packer|Antrean packer tidak akan lebih besar dari ini; chunk tertua dibuang.
+pathingMapDefaultSize|perf|2||||Ukuran Default Peta Pathing|Ukuran default Long2ObjectOpenHashMap yang dipakai pathing.
+pathingMapLoadFactor|perf|2|0.1|1|0.05|Load Factor Peta Pathing|Faktor beban peta pathing. Turunkan untuk operasi lebih cepat tapi memori lebih banyak.
+cachedChunksExpirySeconds|perf|2||||Kedaluwarsa Cache (detik)|Chunk cache dihapus setelah sekian detik. -1 untuk menonaktifkan (sangat disarankan).
+renderCachedChunks|perf|2||||Render Chunk Cache|Render chunk cache semi-transparan. Tidak jalan dengan OptiFine dan jarang bisa crash.
+cachedChunksOpacity|perf|1|0|1|0.05|Opasitas Chunk Cache|0 = tak terlihat, 1 = solid penuh.
+# --- Keamanan & Hindari ---
+avoidance|safe|1||||Avoidance Aktif|Aktifkan penghindaran mob dan spawner. Berdampak pada performa karena membangun peta di main thread.
+mobAvoidanceCoefficient|safe|1|0|10|0.1|Koefisien Hindari Mob|Setel 1.0 untuk menonaktifkan; di bawah 1.0 justru mendekati mob.
+mobAvoidanceRadius|safe|1|0|64|1|Radius Hindari Mob|Jarak menghindari mob.
+mobSpawnerAvoidanceCoefficient|safe|1|0|10|0.1|Koefisien Hindari Spawner|Setel 1.0 untuk menonaktifkan; di bawah 1.0 justru mendekati mob spawner.
+mobSpawnerAvoidanceRadius|safe|1|0|64|1|Radius Hindari Spawner|Jarak menghindari mob spawner.
+blocksToAvoid|safe|0||||Blok yang Dihindari|Daftar blok yang akan dihindari Baritone saat berjalan.
+antiCheatCompatibility|safe|1||||Kompatibilitas Anticheat|Perilaku sedikit berbeda agar Baritone jalan di anticheat (menyetel rotasi diam-diam agar tidak sprint ke arah selain depan).
+disconnectOnArrival|safe|1||||Disconnect Saat Tiba|Putus dari server begitu sampai di goal.
+doBedWaypoints|safe|0||||Waypoint Kasur|Simpan waypoint kasur saat berinteraksi dengan kasur.
+doDeathWaypoints|safe|0||||Waypoint Kematian|Simpan waypoint saat mati.
+# --- Kamera & Rotasi ---
+freeLook|look|0||||Free Look|Bergerak tanpa memaksa rotasi sisi klien.
+blockFreeLook|look|1||||Free Look Blok|Hancurkan dan taruh blok tanpa memaksa rotasi sisi klien. Butuh Free Look.
+elytraFreeLook|look|1||||Free Look Elytra|Terbang elytra otomatis tanpa memaksa rotasi sisi klien.
+smoothLook|look|1||||Smooth Look|Paksa rotasi yaw sisi klien menjadi rata-rata rotasi server beberapa tick terakhir.
+elytraSmoothLook|look|1||||Smooth Look Elytra|Sama seperti Smooth Look tetapi untuk terbang elytra.
+smoothLookTicks|look|1|1|40|1|Tick Smooth Look|Jumlah tick yang dirata-rata untuk Smooth Look.
+remainWithExistingLookDirection|look|1||||Pertahankan Arah Pandang|Pertahankan arah pandang sebisanya. Matikan jika sering membuat macet.
+randomLooking|look|1|0|5|0.01|Acak Pandang|Derajat acak pitch dan yaw tiap tick. 0 untuk mematikan.
+randomLooking113|look|1|0|10|0.1|Acak Yaw|Derajat acak yaw tiap tick. 0 untuk mematikan.
+blockReachDistance|look|1|1|8|0.1|Jarak Jangkau Blok|Jarak jangkau blok.
+# --- Tampilan & Render ---
+renderPath|render|0||||Render Jalur|Tampilkan jalur.
+renderPathAsLine|render|0||||Jalur Sebagai Garis|Tampilkan jalur sebagai garis, bukan balok.
+renderPathIgnoreDepth|render|0||||Jalur Tembus Depth|Abaikan depth saat merender jalur (terlihat tembus blok).
+fadePath|render|0||||Pudarkan Jalur|Pudar mulai 20 gerakan ke depan, hilang di 30 gerakan. Meningkatkan FPS.
+pathRenderLineWidthPixels|render|0|1|10|0.5|Tebal Garis Jalur|Lebar garis jalur dalam piksel.
+renderGoal|render|0||||Render Goal|Tampilkan goal.
+renderGoalAnimated|render|0||||Goal Beranimasi|Goal beranimasi, bukan hanya kotak (juga mengatur animasi GoalXZ jika beacon aktif).
+renderGoalIgnoreDepth|render|0||||Goal Tembus Depth|Abaikan depth saat merender goal.
+renderGoalXZBeacon|render|0||||Goal XZ Beacon|Render goal X/Z sebagai sinar beacon tanpa depth, bukan kotak setinggi penuh.
+goalRenderLineWidthPixels|render|0|1|10|0.5|Tebal Garis Goal|Lebar garis goal dalam piksel.
+yLevelBoxSize|render|0|1|100|1|Ukuran Kotak Y Level|Ukuran kotak yang dirender untuk goal GoalYLevel.
+renderSelectionBoxes|render|0||||Render Kotak Seleksi|Tampilkan kotak seleksi (hancurkan, taruh, jalan masuk).
+renderSelectionBoxesIgnoreDepth|render|0||||Kotak Seleksi Tembus Depth|Abaikan depth saat merender kotak seleksi.
+renderSelection|render|0||||Render Seleksi|Tampilkan seleksi.
+renderSelectionIgnoreDepth|render|0||||Seleksi Tembus Depth|Abaikan depth saat merender seleksi.
+renderSelectionCorners|render|0||||Render Sudut Seleksi|Tampilkan sudut seleksi.
+selectionOpacity|render|0|0|1|0.05|Opasitas Seleksi|0 = transparan penuh, 1 = solid penuh.
+selectionLineWidth|render|0|1|10|0.5|Tebal Garis Seleksi|Lebar garis seleksi dalam piksel.
+elytraRenderRaytraces|render|1||||Render Raytrace Elytra|Tampilkan raytrace yang dilakukan kalkulasi terbang elytra.
+elytraRenderHitboxRaytraces|render|1||||Render Raytrace Hitbox Elytra|Tampilkan raytrace bagian hitbox pada kalkulasi elytra. Butuh Render Raytrace Elytra.
+elytraRenderSimulation|render|1||||Render Simulasi Elytra|Tampilkan jalur terbang terbaik hasil simulasi tiap tick.
+# --- Warna ---
+colorCurrentPath|color|0||||Warna Jalur Sekarang|Warna jalur saat ini.
+colorNextPath|color|0||||Warna Jalur Berikutnya|Warna jalur berikutnya.
+colorBestPathSoFar|color|0||||Warna Jalur Terbaik|Warna jalur terbaik sejauh ini.
+colorMostRecentConsidered|color|0||||Warna Node Terakhir|Warna jalur ke node terakhir yang dipertimbangkan.
+colorBlocksToBreak|color|0||||Warna Blok Dihancurkan|Warna blok yang akan dihancurkan.
+colorBlocksToPlace|color|0||||Warna Blok Dipasang|Warna blok yang akan dipasang.
+colorBlocksToWalkInto|color|0||||Warna Blok Dilewati|Warna blok yang akan dimasuki.
+colorGoalBox|color|0||||Warna Kotak Goal|Warna kotak goal.
+colorInvertedGoalBox|color|0||||Warna Goal Terbalik|Warna kotak goal saat dibalik (invert).
+colorSelection|color|0||||Warna Seleksi|Warna semua seleksi.
+colorSelectionPos1|color|0||||Warna Posisi 1|Warna posisi 1 seleksi.
+colorSelectionPos2|color|0||||Warna Posisi 2|Warna posisi 2 seleksi.
+# --- Chat, Prefix & Notifikasi ---
+chatControl|chat|0||||Kontrol via Chat|Izinkan kontrol Baritone lewat chat. Sebaiknya dimatikan jika Baritone dipakai sebagai library.
+chatControlAnyway|chat|1||||Kontrol Chat Paksa|Setting kedua untuk memaksa chat control, karena client seperti Impact mencoba mematikannya.
+prefixControl|chat|0||||Kontrol dengan Prefix|Izinkan menjalankan perintah Baritone dengan prefix.
+prefix|chat|0||||Prefix Perintah|Prefix perintah untuk kontrol via chat (default #).
+shortBaritonePrefix|chat|0||||Prefix Pendek [B]|Pakai prefix pendek [B] alih-alih [Baritone] di chat.
+useMessageTag|chat|0||||Pakai Message Tag|Pakai message tag modern alih-alih prefix saat mencatat ke chat.
+echoCommands|chat|0||||Echo Perintah|Tampilkan perintah di chat saat dijalankan.
+censorCoordinates|chat|0||||Sensor Koordinat|Sensor koordinat pada goal dan posisi blok.
+censorRanCommands|chat|0||||Sensor Argumen Perintah|Sensor argumen perintah yang dijalankan, misal koordinat pada #goal.
+chatDebug|chat|1||||Debug ke Chat|Cetak semua pesan debug ke chat.
+logAsToast|chat|0||||Pesan Sebagai Toast|Tampilkan pesan sebagai popup di pojok kanan atas seperti advancement.
+verboseCommandExceptions|chat|2||||Error Perintah Verbose|Cetak SEMUA exception perintah sebagai stack trace ke stdout.
+desktopNotifications|chat|0||||Notifikasi Desktop|Aktifkan notifikasi desktop.
+notificationOnPathComplete|chat|0||||Notif Jalur Selesai|Notifikasi desktop saat jalur selesai.
+notificationOnFarmFail|chat|0||||Notif Farm Gagal|Notifikasi desktop saat farming gagal.
+notificationOnBuildFinished|chat|0||||Notif Build Selesai|Notifikasi desktop saat build selesai.
+notificationOnExploreFinished|chat|0||||Notif Eksplorasi Selesai|Notifikasi desktop saat eksplorasi selesai.
+notificationOnMineFail|chat|0||||Notif Mining Gagal|Notifikasi desktop saat mining gagal.
+# --- Elytra ---
+elytraTermsAccepted|elytra|0||||Terima Syarat Elytra|Sudah membaca dan memahami syarat dan ketentuan mode elytra.
+elytraAutoJump|elytra|1||||Auto Lompat Elytra|Otomatis menuju dan melompat dari tebing untuk memulai terbang saat di tanah.
+elytraAutoSwap|elytra|0||||Auto Ganti Elytra|Otomatis mengganti elytra dengan yang baru saat durability terlalu rendah.
+elytraMinimumDurability|elytra|0|1|432|1|Durability Minimum Elytra|Durability minimum sebelum elytra diganti.
+elytraMinFireworksBeforeLanding|elytra|0|0|64|1|Minimum Roket Sebelum Mendarat|Jumlah minimum roket sebelum mendarat lebih awal demi keamanan.
+elytraAllowEmergencyLand|elytra|0||||Pendaratan Darurat|Mendarat otomatis saat durability atau roket hampir habis.
+elytraConserveFireworks|elytra|1||||Hemat Roket|Hindari memakai roket saat menurun mengikuti jalur terbang.
+elytraFireworkSpeed|elytra|1|0.1|3|0.05|Kecepatan Pemicu Roket|Kecepatan minimum (blok/tick) sebelum roket otomatis dipakai.
+elytraFireworkSetbackUseDelay|elytra|1|0|100|1|Jeda Roket Setelah Setback|Jeda (tick) setelah posisi pemain dikembalikan server sebelum roket boleh dipakai otomatis.
+elytraSimulationTicks|elytra|1|1|100|1|Tick Simulasi Elytra|Jumlah tick simulasi gerakan elytra saat boost roket tidak aktif. Makin tinggi makin berat.
+elytraPitchRange|elytra|1|1|90|1|Rentang Pitch Elytra|Deviasi pitch maksimum dari garis pandang langsung ke target. Makin tinggi makin berat.
+elytraMinimumAvoidance|elytra|1|0|2|0.05|Avoidance Minimum Elytra|Padding minimum pada hitbox saat memilih titik terbang. Terlalu tinggi menolak titik aman, terlalu rendah membuat jalur sempit.
+elytraAllowTightSpaces|elytra|2||||Izinkan Ruang Sempit|Izinkan terbang di ruang sempit. Berguna di gua tapi berbahaya.
+elytraAllowAboveRoof|elytra|2||||Izinkan di Atas Atap Nether|Izinkan terbang di atas Y 128 di Nether.
+elytraAllowAboveBuildLimit|elytra|1||||Izinkan di Atas Batas Build|Izinkan terbang di atas batas build di Overworld dan End.
+elytraLongDistanceThreshold|elytra|1|32|10000|10|Ambang Jarak Jauh|Jarak minimum perjalanan elytra sebelum terbang di atas batas build. Minimal 32.
+elytraAllowLandOnNetherFortress|elytra|1||||Mendarat di Nether Fortress|Anggap nether brick sebagai blok pendaratan valid.
+elytraUseCache|elytra|1||||Pakai Cache|Izinkan pathfinder memakai cache Baritone untuk jalur lebih baik.
+elytraPredictTerrain|elytra|1||||Prediksi Terrain|Hasilkan terrain berdasarkan seed Nether. Jika mati, chunk belum dimuat dianggap udara.
+elytraNetherSeed|elytra|1||||Seed Nether|Seed untuk membangun chunk pada pathfinding elytra jarak jauh di Nether. Default seed Nether 2b2t.
+elytraTimeBetweenCacheCullSecs|elytra|2|10|3600|10|Jeda Pembersihan Cache (detik)|Jeda antar pembersihan chunk jauh dari cache nether pathfinder.
+elytraCacheCullDistance|elytra|2|500|50000|100|Jarak Pembersihan Cache|Jarak maksimum chunk sebelum dibersihkan dari cache nether pathfinder.
+elytraCustomAllocator|elytra|2||||Allocator Kustom|Dapat mengurangi pemakaian memori dengan allocator kustom untuk pathfinding.
+elytraChatSpam|elytra|1||||Log Verbose Elytra|Log chat verbose pada mode elytra.
+# --- Follow & Goal ---
+followRadius|follow|0|0|32|1|Radius Follow|Radius GoalNear: seberapa dekat dengan posisi target yang harus dicapai.
+followOffsetDistance|follow|1|0|32|0.5|Jarak Offset Follow|GoalNear diset sekian blok dari entitas yang diikuti.
+followOffsetDirection|follow|1|0|360|1|Arah Offset Follow|Arah (derajat) GoalNear dari entitas yang diikuti.
+followTargetMaxDistance|follow|1|0|128|1|Jarak Maks Target Follow|Jarak maksimum ke entitas yang diikuti.

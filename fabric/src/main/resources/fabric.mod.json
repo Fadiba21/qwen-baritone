@@ -2,36 +2,41 @@
   "schemaVersion": 1,
   "id": "baritone",
   "version": "${version}",
-
-  "name": "Baritone",
-  "description": "Google Maps for Blockgame",
+  "name": "Qwen Baritone",
+  "description": "Independent Baritone fork with an in-game control center, contextual general chat, direct Gemini actions and macros. Minecraft 26.2 Fabric.",
   "authors": [
-    "leijurv", "Brady"
+    "leijurv",
+    "Brady",
+    "Baritone contributors",
+    "QwenUI contributors"
   ],
   "contact": {
-    "homepage": "https://github.com/cabaletta/baritone",
-    "sources": "https://github.com/cabaletta/baritone",
-    "issues": "https://github.com/cabaletta/baritone/issues"
+    "sources": "https://github.com/Fadiba21/Qwen-Baritone",
+    "issues": "https://github.com/Fadiba21/Qwen-Baritone/issues"
   },
-
-  "license": "LGPL-3.0",
-  "icon": "assets/baritone/icon.png",
-
-  "environment": "*",
+  "license": "LGPL-3.0-or-later",
+  "environment": "client",
   "entrypoints": {
+    "client": [
+      "baritone.qwenui.QwenUI"
+    ],
+    "modmenu": [
+      "baritone.qwenui.QwenModMenu"
+    ]
   },
   "mixins": [
-      "mixins.baritone.json"
+    "mixins.baritone.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.3",
-    "minecraft": ["26.2"]
+    "minecraft": "26.2",
+    "java": ">=25",
+    "fabric-resource-loader-v1": "*"
   },
-  "custom": {
-    "modmenu": {
-      "links": {
-        "modmenu.discord": "https://discord.gg/s6fRBAUpmr"
-      }
-    }
-  }
+  "suggests": {
+    "modmenu": ">=20.0.0",
+    "litematica": "*",
+    "malilib": "*"
+  },
+  "icon": "assets/qwenui/icon.png"
 }

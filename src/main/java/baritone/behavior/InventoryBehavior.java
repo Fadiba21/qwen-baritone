@@ -48,6 +48,8 @@ public final class InventoryBehavior extends Behavior implements Helper {
 
     int ticksSinceLastInventoryMove;
     int[] lastTickRequestedMove; // not everything asks every tick, so remember the request while coming to a halt
+    private ItemStack pendingSource;
+    private ItemStack pendingDestination;
 
     public InventoryBehavior(Baritone baritone) {
         super(baritone);
@@ -55,38 +57,34 @@ public final class InventoryBehavior extends Behavior implements Helper {
 
     @Override
     public void onTick(TickEvent event) {
-        if (!Baritone.settings().allowInventory.value) {
-            return;
-        }
-        if (event.getType() == TickEvent.Type.OUT) {
-            return;
-        }
-        if (ctx.player().containerMenu != ctx.player().inventoryMenu) {
-            // we have a crafting table or a chest or something open
+        if (event.getType() == TickEvent.Type.OUT || !canAutomateInventory()) {
+            clearPendingMove();
+            ticksSinceLastInventoryMove = 0;
             return;
         }
         ticksSinceLastInventoryMove++;
-        if (firstValidThrowaway() >= 9) { // aka there are none on the hotbar, but there are some in main inventory
-            requestSwapWithHotBar(firstValidThrowaway(), 8);
+        if (lastTickRequestedMove != null) {
+            if (pendingMoveStillMatches()) {
+                // Finish one validated request before scheduling another.
+                requestSwapWithHotBar(lastTickRequestedMove[0], lastTickRequestedMove[1]);
+                return;
+            }
+            clearPendingMove();
+        }
+        int throwaway = firstValidThrowaway();
+        if (throwaway >= 9) {
+            requestSwapWithHotBar(throwaway, 8);
+            return;
         }
         int pick = bestToolAgainst(Blocks.STONE);
         if (pick >= 9) {
             requestSwapWithHotBar(pick, 0);
         }
-        if (lastTickRequestedMove != null) {
-            logDebug("Remembering to move " + lastTickRequestedMove[0] + " " + lastTickRequestedMove[1] + " from a previous tick");
-            requestSwapWithHotBar(lastTickRequestedMove[0], lastTickRequestedMove[1]);
-        }
     }
 
     public boolean attemptToPutOnHotbar(int inMainInvy, Predicate<Integer> disallowedHotbar) {
         OptionalInt destination = getTempHotbarSlot(disallowedHotbar);
-        if (destination.isPresent()) {
-            if (!requestSwapWithHotBar(inMainInvy, destination.getAsInt())) {
-                return false;
-            }
-        }
-        return true;
+        return destination.isPresent() && requestSwapWithHotBar(inMainInvy, destination.getAsInt());
     }
 
     public OptionalInt getTempHotbarSlot(Predicate<Integer> disallowedHotbar) {
@@ -111,7 +109,31 @@ public final class InventoryBehavior extends Behavior implements Helper {
     }
 
     private boolean requestSwapWithHotBar(int inInventory, int inHotbar) {
-        lastTickRequestedMove = new int[]{inInventory, inHotbar};
+        // Builder/throwaway callers bypass onTick's maintenance, so guard here too.
+        if (!canAutomateInventory()) {
+            clearPendingMove();
+            ticksSinceLastInventoryMove = 0;
+            return false;
+        }
+        if (!InventoryMovePolicy.validSwap(inInventory, inHotbar)) {
+            return false;
+        }
+        NonNullList<ItemStack> inventory = ctx.player().getInventory().getNonEquipmentItems();
+        if (inventory.get(inInventory).isEmpty()) {
+            return false;
+        }
+        if (lastTickRequestedMove != null && !pendingMoveStillMatches()) {
+            clearPendingMove();
+        }
+        if (lastTickRequestedMove != null
+                && (lastTickRequestedMove[0] != inInventory || lastTickRequestedMove[1] != inHotbar)) {
+            return false;
+        }
+        if (lastTickRequestedMove == null) {
+            lastTickRequestedMove = new int[]{inInventory, inHotbar};
+            pendingSource = inventory.get(inInventory).copy();
+            pendingDestination = inventory.get(inHotbar).copy();
+        }
         if (ticksSinceLastInventoryMove < Baritone.settings().ticksBetweenInventoryMoves.value) {
             logDebug("Inventory move requested but delaying " + ticksSinceLastInventoryMove + " " + Baritone.settings().ticksBetweenInventoryMoves.value);
             return false;
@@ -120,10 +142,32 @@ public final class InventoryBehavior extends Behavior implements Helper {
             logDebug("Inventory move requested but delaying until stationary");
             return false;
         }
-        ctx.playerController().windowClick(ctx.player().inventoryMenu.containerId, inInventory < 9 ? inInventory + 36 : inInventory, inHotbar, ContainerInput.SWAP, ctx.player());
+        ctx.playerController().windowClick(ctx.player().inventoryMenu.containerId, InventoryMovePolicy.menuSlot(inInventory), inHotbar, ContainerInput.SWAP, ctx.player());
         ticksSinceLastInventoryMove = 0;
-        lastTickRequestedMove = null;
+        clearPendingMove();
         return true;
+    }
+
+    private boolean canAutomateInventory() {
+        LocalPlayer player = ctx.player();
+        return InventoryMovePolicy.canAutomate(Baritone.settings().allowInventory.value,
+                player != null && ctx.world() != null, ctx.minecraft().gui.screen() != null,
+                player != null && player.containerMenu == player.inventoryMenu,
+                player != null && player.inventoryMenu.getCarried().isEmpty());
+    }
+
+    private boolean pendingMoveStillMatches() {
+        NonNullList<ItemStack> inventory = ctx.player().getInventory().getNonEquipmentItems();
+        return pendingSource != null && pendingDestination != null
+                && InventoryMovePolicy.validSwap(lastTickRequestedMove[0], lastTickRequestedMove[1])
+                && ItemStack.matches(pendingSource, inventory.get(lastTickRequestedMove[0]))
+                && ItemStack.matches(pendingDestination, inventory.get(lastTickRequestedMove[1]));
+    }
+
+    private void clearPendingMove() {
+        lastTickRequestedMove = null;
+        pendingSource = null;
+        pendingDestination = null;
     }
 
     private int firstValidThrowaway() { // TODO offhand idk
@@ -226,7 +270,9 @@ public final class InventoryBehavior extends Behavior implements Helper {
             for (int i = 9; i < 36; i++) {
                 if (desired.test(inv.get(i))) {
                     if (select) {
-                        requestSwapWithHotBar(i, 7);
+                        if (!requestSwapWithHotBar(i, 7)) {
+                            return false;
+                        }
                         p.getInventory().setSelectedSlot(7);
                     }
                     return true;

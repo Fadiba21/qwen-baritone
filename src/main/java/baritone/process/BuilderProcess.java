@@ -40,6 +40,7 @@ import baritone.utils.schematic.MapArtSchematic;
 import baritone.utils.schematic.SchematicSystem;
 import baritone.utils.schematic.SelectionSchematic;
 import baritone.utils.schematic.litematica.LitematicaHelper;
+import baritone.utils.schematic.litematica.LitematicaPlacements;
 import baritone.utils.schematic.schematica.SchematicaHelper;
 import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -170,18 +171,40 @@ public final class BuilderProcess extends BaritoneProcessHelper implements IBuil
         return paused;
     }
 
+    private volatile String lastLoadError;
+    private volatile java.util.List<String> lastLoadWarnings = java.util.Collections.emptyList();
+
+    @Override
+    public String getLastLoadError() {
+        return lastLoadError;
+    }
+
+    @Override
+    public java.util.List<String> getLastLoadWarnings() {
+        return lastLoadWarnings;
+    }
+
     @Override
     public boolean build(String name, File schematic, Vec3i origin) {
+        lastLoadError = null;
+        lastLoadWarnings = java.util.Collections.emptyList();
         Optional<ISchematicFormat> format = SchematicSystem.INSTANCE.getByFile(schematic);
         if (!format.isPresent()) {
+            lastLoadError = "Unknown schematic format for " + schematic.getName();
             return false;
         }
         IStaticSchematic parsed;
-        try {
-            parsed = format.get().parse(new FileInputStream(schematic));
-        } catch (Exception e) {
+        try (FileInputStream in = new FileInputStream(schematic)) {
+            parsed = format.get().parse(in);
+        } catch (Throwable e) {
+            String msg = e.getMessage();
+            lastLoadError = e.getClass().getSimpleName() + (msg == null || msg.isEmpty() ? "" : ": " + msg);
+            logDirect("Failed to load " + schematic.getName() + ": " + lastLoadError);
             e.printStackTrace();
             return false;
+        }
+        if (parsed instanceof baritone.utils.schematic.format.defaults.LitematicaSchematic lit) {
+            lastLoadWarnings = java.util.List.copyOf(lit.getWarnings());
         }
         ISchematic schem = applyMapArtAndSelection(origin, parsed);
         build(name, schem, origin);
@@ -218,18 +241,55 @@ public final class BuilderProcess extends BaritoneProcessHelper implements IBuil
 
     @Override
     public void buildOpenLitematic(int i) {
-        if (LitematicaHelper.isLitematicaPresent()) {
-            //if java.lang.NoSuchMethodError is thrown see comment in SchematicPlacementManager
-            if (LitematicaHelper.hasLoadedSchematic(i)) {
-                Pair<IStaticSchematic, Vec3i> schematic = LitematicaHelper.getSchematic(i);
+        lastLoadError = null;
+        lastLoadWarnings = java.util.Collections.emptyList();
+        if (!LitematicaPlacements.isPresent()) {
+            lastLoadError = "Litematica is not installed.";
+            logDirect(lastLoadError);
+            return;
+        }
+        try {
+            var infos = LitematicaPlacements.list();
+            if (infos.isEmpty()) {
+                lastLoadError = "Litematica has no loaded placement. Load a schematic in Litematica first.";
+                logDirect(lastLoadError);
+                return;
+            }
+            int index = i < 0 ? LitematicaPlacements.pickDefault(infos) : i;
+            if (index < 0 || index >= infos.size()) {
+                lastLoadError = String.format("List of placements has no entry %s", i + 1);
+                logDirect(lastLoadError);
+                return;
+            }
+            var info = infos.get(index);
+            LitematicaPlacements.Loaded loaded = null;
+            try {
+                loaded = LitematicaPlacements.fromFile(info);
+            } catch (Exception e) {
+                logDirect("Could not read the placement's file (" + e.getMessage() + "); using the rendered placement instead.");
+            }
+            if (loaded != null) {
+                lastLoadWarnings = java.util.List.copyOf(loaded.notes());
+                for (String note : loaded.notes()) logDirect("Warning: " + note);
+                ISchematic schem = applyMapArtAndSelection(loaded.origin(), loaded.schematic());
+                build(info.name(), schem, loaded.origin());
+                logDirect(String.format("Building placement '%s' from its file. Origin: %s", info.name(), loaded.origin()));
+                return;
+            }
+            // Fallback: read blocks from Litematica's rendered schematic world (needs the placement to be near the player).
+            if (LitematicaHelper.hasLoadedSchematic(index)) {
+                logDirect("Placement has moved/rotated sub-regions or no file; reading the rendered placement. Stay close to it so its chunks are loaded.");
+                Pair<IStaticSchematic, Vec3i> schematic = LitematicaHelper.getSchematic(index);
                 Vec3i correctedOrigin = schematic.second();
                 ISchematic schematic2 = applyMapArtAndSelection(correctedOrigin, schematic.first());
                 build(schematic.first().toString(), schematic2, correctedOrigin);
             } else {
-                logDirect(String.format("List of placements has no entry %s", i + 1));
+                lastLoadError = String.format("List of placements has no entry %s", index + 1);
+                logDirect(lastLoadError);
             }
-        } else {
-            logDirect("Litematica is not present");
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+            lastLoadError = "Could not read Litematica's placements (" + e.getClass().getSimpleName() + ": " + e.getMessage() + "). Is your Litematica build for this Minecraft version?";
+            logDirect(lastLoadError);
         }
     }
 
