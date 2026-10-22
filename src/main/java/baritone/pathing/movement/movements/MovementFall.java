@@ -86,7 +86,9 @@ public class MovementFall extends Movement {
     @Override
     public MovementState updateState(MovementState state) {
         super.updateState(state);
-        if (state.getStatus() != MovementStatus.RUNNING) {
+        if (state.getStatus() != MovementStatus.RUNNING || ctx.minecraft().gui.screen() != null
+                || ctx.player().containerMenu != ctx.player().inventoryMenu
+                || !ctx.player().inventoryMenu.getCarried().isEmpty()) {
             return state;
         }
 

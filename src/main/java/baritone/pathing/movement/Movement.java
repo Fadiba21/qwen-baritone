@@ -127,8 +127,8 @@ public abstract class Movement implements IMovement, MovementHelper {
             currentState.setInput(Input.JUMP, true);
         }
         if (ctx.player().isInWall()) {
-            ctx.getSelectedBlock().ifPresent(pos -> MovementHelper.switchToBestToolFor(ctx, BlockStateInterface.get(ctx, pos)));
-            currentState.setInput(Input.CLICK_LEFT, true);
+            boolean toolReady = ctx.getSelectedBlock().map(pos -> MovementHelper.switchToBestToolFor(ctx, BlockStateInterface.get(ctx, pos))).orElse(false);
+            currentState.setInput(Input.CLICK_LEFT, toolReady);
         }
 
         // If the movement target has to force the new rotations, or we aren't using silent move, then force the rotations
@@ -161,7 +161,10 @@ public abstract class Movement implements IMovement, MovementHelper {
             }
             if (!MovementHelper.canWalkThrough(ctx, blockPos)) { // can't break air, so don't try
                 somethingInTheWay = true;
-                MovementHelper.switchToBestToolFor(ctx, BlockStateInterface.get(ctx, blockPos));
+                if (!MovementHelper.switchToBestToolFor(ctx, BlockStateInterface.get(ctx, blockPos))) {
+                    state.setInput(Input.CLICK_LEFT, false);
+                    return false;
+                }
                 Optional<Rotation> reachable = RotationUtils.reachable(ctx, blockPos, ctx.playerController().getBlockReachDistance());
                 if (reachable.isPresent()) {
                     Rotation rotTowardsBlock = reachable.get();

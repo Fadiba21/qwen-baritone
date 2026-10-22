@@ -3,7 +3,7 @@
 Fork independen [Baritone](https://github.com/cabaletta/baritone) dengan panel kontrol dalam game, makro, dan asisten Gemini opsional.
 
 **Minecraft 26.2 · Fabric Loader 0.19.3+ · Java 25**
-Rilis fork: **1.6.0-hotfix.2** · Basis Baritone: **1.19.0**
+Rilis fork: **1.6.0-hotfix.3** · Basis Baritone: **1.19.0**
 
 ![Menu utama Qwen Baritone](docs/screenshots/menu.png)
 
@@ -15,6 +15,12 @@ Rilis fork: **1.6.0-hotfix.2** · Basis Baritone: **1.19.0**
 - **Makro & keybind:** urutan perintah, jeda/pengulangan terbatas, dan kombinasi Ctrl/Shift/Alt.
 - **Asisten AI opsional:** chat Gemini dan aksi Baritone tervalidasi menggunakan API key milik sendiri.
 - **Tampilan fleksibel:** bahasa Indonesia/Inggris, blur, ukuran panel, dan skala UI bilangan bulat. Hotfix memperbaiki logo dan benturan otomatisasi inventory dengan perpindahan item manual.
+
+## Hotfix.3: inventory dan hotbar
+
+Item yang dipindahkan manual tidak lagi ditarik kembali ke hotbar saat idle atau setelah inventory ditutup. Penataan otomatis saat idle dan eksekusi ulang antrean lama dihapus; restock hanya dijalankan atas permintaan tugas aktif. Slot dipilih deterministik dengan prioritas slot kosong, sementara perubahan inventory, GUI, cursor, menu, dan pemain membatalkan permintaan yang tidak lagi aman.
+
+Laporan paket teruji mencatat **72/72 pemeriksaan runtime akhir lulus**, **184 eksekusi unit test tanpa kegagalan**, dan clean build Java 25 berhasil. Cakupan dan batasan ada di [laporan lengkap](HOTFIX-1.6.0-hotfix.3.md) dan [catatan pengujian](docs/TESTING.md). JAR teruji, source ZIP asli, bukti pengujian, screenshot, dan SHA-256 tersedia pada [rilis v1.6.0-hotfix.3](https://github.com/Fadiba21/qwen-baritone/releases/tag/v1.6.0-hotfix.3).
 
 ## Pasang & gunakan
 
@@ -34,7 +40,7 @@ cd Qwen-Baritone
 ```
 
 Windows: ganti `./gradlew` dengan `gradlew.bat`. JAR distribusi:
-`fabric/build/libs/baritone-qwenui-fabric-1.19.0+qwenui.1.6.0-hotfix.2.jar`.
+`fabric/build/libs/baritone-qwenui-fabric-1.19.0+qwenui.1.6.0-hotfix.3.jar`.
 Build pertama memerlukan internet untuk dependensi. Target build yang didukung fork ini hanya **Fabric 26.2**; folder loader lain adalah warisan upstream.
 
 GitHub Actions membangun dan menguji setiap push/PR serta menyediakan JAR dan laporan tes; build juga dapat dipicu lewat **Run workflow**. Build CI tidak menerbitkan release otomatis.

@@ -37,7 +37,7 @@ allprojects {
         version = vers.substring(1)
         println "Detected version " + version
     }
-    version = "${rootProject.mod_version}+qwenui.1.6.0-hotfix.2"
+    version = "${rootProject.mod_version}+qwenui.1.6.0-hotfix.3"
     group = rootProject.maven_group
 
     java {

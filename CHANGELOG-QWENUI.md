@@ -1,3 +1,13 @@
+# Qwen Baritone 1.6.0-hotfix.3
+
+- Hapus autosort/restock saat idle dan eksekusi otomatis antrean swap lama yang menarik kembali item manual ke hotbar.
+- Builder, placement, dan mining meminta item hanya saat dibutuhkan; pemanggil menunggu jika swap belum siap.
+- Prioritaskan slot kosong secara deterministik. Batalkan permintaan kedaluwarsa atau berubah konteks, dan validasi ulang sebelum satu paket SWAP dikirim.
+- Guard GUI/menu/cursor juga berlaku untuk pemilihan tool, builder, placement, dan bucket. Pauser menghitung tick diam berturut-turut.
+- Paket pengujian melaporkan 72/72 pemeriksaan runtime akhir lulus, 184 eksekusi unit test tanpa kegagalan, dan clean build Java 25 berhasil. Lihat [laporan hotfix.3](HOTFIX-1.6.0-hotfix.3.md) untuk bukti, percobaan awal yang gagal, dan batas pengujian.
+
+Catatan di bawah adalah riwayat rilis lama; pernyataan belum diuji/belum terselesaikan di sana bukan status hotfix.3.
+
 # Perubahan Baritone QwenUI 1.6.0
 
 Revisi dari 1.5.0. **Catatan jujur:** ditulis tanpa akses Gradle/Mojang di sandbox; kode Minecraft belum dikompilasi atau dijalankan di sini. Hanya logika murni (SettingGuide, UiPreferences, ResponsiveLayout) yang diuji, plus pengecekan sintaks.

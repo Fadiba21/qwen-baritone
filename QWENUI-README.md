@@ -1,4 +1,4 @@
-> Catatan historis 1.6.0. Untuk instalasi/build rilis hotfix.2 gunakan [README](README.md); menu awal sekarang Beranda.
+> Catatan historis 1.6.0. Untuk instalasi/build rilis hotfix.3 gunakan [README](README.md); menu awal sekarang Beranda.
 
 # Baritone QwenUI 1.6.0
 

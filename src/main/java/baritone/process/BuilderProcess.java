@@ -494,6 +494,11 @@ public final class BuilderProcess extends BaritoneProcessHelper implements IBuil
 
     @Override
     public PathingCommand onTick(boolean calcFailed, boolean isSafeToCancel) {
+        if (ctx.minecraft().gui.screen() != null || ctx.player().containerMenu != ctx.player().inventoryMenu
+                || !ctx.player().inventoryMenu.getCarried().isEmpty()) {
+            baritone.getInputOverrideHandler().clearAllKeys();
+            return new PathingCommand(null, PathingCommandType.REQUEST_PAUSE);
+        }
         return onTick(calcFailed, isSafeToCancel, 0);
     }
 
@@ -597,7 +602,10 @@ public final class BuilderProcess extends BaritoneProcessHelper implements IBuil
             Rotation rot = toBreak.get().second();
             BetterBlockPos pos = toBreak.get().first();
             baritone.getLookBehavior().updateTarget(rot, true);
-            MovementHelper.switchToBestToolFor(ctx, bcc.get(pos));
+            if (!MovementHelper.switchToBestToolFor(ctx, bcc.get(pos))) {
+                        baritone.getInputOverrideHandler().setInputForceState(Input.CLICK_LEFT, false);
+                        return new PathingCommand(null, PathingCommandType.REQUEST_PAUSE);
+                    }
             if (ctx.player().isCrouching()) {
                 // really horrible bug where a block is visible for breaking while sneaking but not otherwise
                 // so you can't see it, it goes to place something else, sneaks, then the next tick it tries to break

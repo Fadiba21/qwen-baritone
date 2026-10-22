@@ -136,7 +136,15 @@ public class ToolSet {
         return getBestSlot(b, preferSilkTouch, false);
     }
 
+    public int getBestInventorySlot(Block b, boolean preferSilkTouch) {
+        return getBestSlot(b, preferSilkTouch, false, 36);
+    }
+
     public int getBestSlot(Block b, boolean preferSilkTouch, boolean pathingCalculation) {
+        return getBestSlot(b, preferSilkTouch, pathingCalculation, 9);
+    }
+
+    private int getBestSlot(Block b, boolean preferSilkTouch, boolean pathingCalculation, int endSlot) {
 
         /*
         If we actually want know what efficiency our held item has instead of the best one
@@ -151,7 +159,7 @@ public class ToolSet {
         int lowestCost = Integer.MIN_VALUE;
         boolean bestSilkTouch = false;
         BlockState blockState = b.defaultBlockState();
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < endSlot; i++) {
             ItemStack itemStack = player.getInventory().getItem(i);
             if (!Baritone.settings().useSwordToMine.value && itemStack.is(ItemTags.SWORDS)) {
                 continue;

@@ -35,7 +35,7 @@ public class InventoryMovePolicyTest {
     @Test public void everyValidSourceAndDestinationExcludesSelfSwaps() {
         for (int source = 0; source < 36; source++) {
             for (int target = 0; target < 9; target++) {
-                assertEquals(source != target, InventoryMovePolicy.validSwap(source, target));
+                assertEquals(source >= 9, InventoryMovePolicy.validSwap(source, target));
             }
         }
     }

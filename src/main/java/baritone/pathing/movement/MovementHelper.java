@@ -646,8 +646,8 @@ public interface MovementHelper extends ActionCosts, Helper {
      * @param ctx The player context
      * @param b   the blockstate to mine
      */
-    static void switchToBestToolFor(IPlayerContext ctx, BlockState b) {
-        switchToBestToolFor(ctx, b, new ToolSet(ctx.player()), BaritoneAPI.getSettings().preferSilkTouch.value);
+    static boolean switchToBestToolFor(IPlayerContext ctx, BlockState b) {
+        return switchToBestToolFor(ctx, b, new ToolSet(ctx.player()), BaritoneAPI.getSettings().preferSilkTouch.value);
     }
 
     /**
@@ -657,12 +657,21 @@ public interface MovementHelper extends ActionCosts, Helper {
      * @param b   the blockstate to mine
      * @param ts  previously calculated ToolSet
      */
-    static void switchToBestToolFor(IPlayerContext ctx, BlockState b, ToolSet ts, boolean preferSilkTouch) {
-        if (Baritone.settings().autoTool.value && !Baritone.settings().assumeExternalAutoTool.value) {
-            ctx.player().getInventory().setSelectedSlot(ts.getBestSlot(b.getBlock(), preferSilkTouch));
+    static boolean switchToBestToolFor(IPlayerContext ctx, BlockState b, ToolSet ts, boolean preferSilkTouch) {
+        if (ctx.minecraft().gui.screen() != null || ctx.player().containerMenu != ctx.player().inventoryMenu
+                || !ctx.player().inventoryMenu.getCarried().isEmpty()) {
+            return false;
         }
+        if (Baritone.settings().autoTool.value && !Baritone.settings().assumeExternalAutoTool.value) {
+            Baritone owner = (Baritone) BaritoneAPI.getProvider().getBaritoneForPlayer(ctx.player());
+            int slot = owner.getInventoryBehavior().toolSlotFor(b.getBlock(), ts, preferSilkTouch);
+            if (slot < 0) {
+                return false;
+            }
+            ctx.player().getInventory().setSelectedSlot(slot);
+        }
+        return true;
     }
-
     static void moveTowards(IPlayerContext ctx, MovementState state, BlockPos pos) {
         state.setTarget(new MovementTarget(
                 RotationUtils.calcRotationFromVec3d(ctx.playerHead(),

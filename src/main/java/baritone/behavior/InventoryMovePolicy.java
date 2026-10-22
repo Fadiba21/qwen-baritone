@@ -10,7 +10,7 @@ final class InventoryMovePolicy {
     }
 
     static boolean validSwap(int inventorySlot, int hotbarSlot) {
-        return inventorySlot >= 0 && inventorySlot < 36
+        return inventorySlot >= 9 && inventorySlot < 36
                 && hotbarSlot >= 0 && hotbarSlot < 9 && inventorySlot != hotbarSlot;
     }
 

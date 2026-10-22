@@ -49,25 +49,22 @@ public class InventoryPauserProcess extends BaritoneProcessHelper {
     }
 
     public boolean stationaryForInventoryMove() {
-        pauseRequestedLastTick = true;
-        return safeToCancelLastTick && ticksOfStationary > 1;
+        boolean ready = safeToCancelLastTick && ticksOfStationary > 1 && stationaryNow();
+        pauseRequestedLastTick = !ready;
+        return ready;
     }
-
     @Override
     public PathingCommand onTick(boolean calcFailed, boolean isSafeToCancel) {
-        //logDebug(pauseRequestedLastTick + " " + safeToCancelLastTick + " " + ticksOfStationary);
         safeToCancelLastTick = isSafeToCancel;
+        // Track consecutive actual stationary ticks even when yielding to the caller.
+        // Otherwise a demand-driven caller and this temporary process starve each other.
+        ticksOfStationary = stationaryNow() ? Math.min(ticksOfStationary + 1, 100) : 0;
         if (pauseRequestedLastTick) {
             pauseRequestedLastTick = false;
-            if (stationaryNow()) {
-                ticksOfStationary++;
-            }
             return new PathingCommand(null, PathingCommandType.REQUEST_PAUSE);
         }
-        ticksOfStationary = 0;
         return new PathingCommand(null, PathingCommandType.DEFER);
     }
-
     @Override
     public void onLostControl() {
 
